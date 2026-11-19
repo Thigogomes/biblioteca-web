@@ -111,7 +111,7 @@ A cada push/Pull Request na `main`: testes do backend (Java 17), testes e build 
 
 | Integrante | Responsabilidade | Branch |
 |---|---|---|
-| Aluno(a) 1 (DEV 1) | CRUD de Autores: `Autor`, `AutorRepository`, `AutorController`, `AutorControllerTest`, `AutorList.js`, `AutorForm.js` | `feature/autores` |
-| Aluno(a) 2 (DEV 2) | CRUD de Livros: `Livro`, `LivroRepository`, `LivroController`, `LivroControllerTest`, `LivroList.js`, `LivroForm.js` | `feature/livros` |
+| Thiago Henrique Gomes Feliciano (DEV 1) | CRUD de Autores: `Autor`, `AutorRepository`, `AutorController`, `AutorControllerTest`, `AutorList.js`, `AutorForm.js` | `feature/autores` |
+| Felipe Gabriel de Carvalho (DEV 2) | CRUD de Livros: `Livro`, `LivroRepository`, `LivroController`, `LivroControllerTest`, `LivroList.js`, `LivroForm.js` | `feature/livros` |
 
 Arquivos comuns (`api.js`, `App.js`, `docker-compose.yml`, CI, README) foram divididos entre os dois; cada um revisou o Pull Request do outro.
