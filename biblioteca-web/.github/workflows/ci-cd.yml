@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-backend:
+    name: Backend (Java 17 + Maven)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Testes unitários e de integração + JaCoCo
+        run: mvn -B test
+      - name: Relatório de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco
+
+  test-frontend:
+    name: Frontend (Node 20 + React)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test -- --watchAll=false --passWithNoTests
+      - run: npm run build
+
+  # (extra) sobe tudo com Docker Compose e faz testes de aceitação com curl
+  acceptance:
+    name: Docker + testes de aceitação
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Subir containers
+        run: docker compose up -d --build
+      - name: Aguardar o backend
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/api/autores && break
+            echo "aguardando backend... ($i)"; sleep 5
+          done
+      - name: Criar autor e livro vinculado
+        run: |
+          curl -f -X POST http://localhost:8080/api/autores \
+            -H "Content-Type: application/json" \
+            -d '{"nome":"Machado de Assis","nacionalidade":"Brasileira","dataNascimento":"1839-06-21"}'
+          curl -f -X POST http://localhost:8080/api/livros \
+            -H "Content-Type: application/json" \
+            -d '{"titulo":"Dom Casmurro","isbn":"978-8535910667","anoPublicacao":1899,"genero":"Romance","autor":{"id":1}}'
+          curl -f http://localhost:8080/api/livros
+      - name: Frontend responde
+        run: curl -f http://localhost:3000
+      - name: Logs em caso de falha
+        if: failure()
+        run: docker compose logs
+      - run: docker compose down -v
